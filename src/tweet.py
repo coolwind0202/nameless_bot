@@ -1,6 +1,7 @@
 import tweepy
 from discord.ext import commands, tasks
 import requests
+import os
 
 class StatusEventListener(tweepy.StreamListener):
     def on_status(self, status):
@@ -35,7 +36,7 @@ def start_stream():
     my_stream = tweepy.Stream(auth=auth, listener=listener)
 
     my_stream.filter(follow=["2888006497"],  is_async=True)
-    
+
 class TweetCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
