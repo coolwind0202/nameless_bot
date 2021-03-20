@@ -5,7 +5,7 @@ import os
 
 class StatusEventListener(tweepy.StreamListener):
     def on_status(self, status):
-        screen_name = "SplatoonJP"
+        screen_name = os.getenv("SPLATOON_SCREEN_NAME")
         if status.user.screen_name != screen_name:
             return
         print(status.text)
@@ -35,7 +35,7 @@ def start_stream():
     listener = StatusEventListener()
     my_stream = tweepy.Stream(auth=auth, listener=listener)
 
-    my_stream.filter(follow=["2888006497"],  is_async=True)
+    my_stream.filter(follow=[os.getenv("SPLATOON_ID")],  is_async=True)
 
 class TweetCog(commands.Cog):
     def __init__(self, bot):
