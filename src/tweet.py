@@ -16,7 +16,7 @@ class StatusEventListener(tweepy.StreamListener):
         await channel.send(tweet_url)
 
     def on_status(self, status):
-        asyncio.create_task(handle_status())
+        asyncio.create_task(self.handle_status())
 
     def on_error(self, status_code):
         if status_code == 420:
