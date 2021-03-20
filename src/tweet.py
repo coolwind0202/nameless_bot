@@ -2,18 +2,21 @@ import tweepy
 from discord.ext import commands, tasks
 import requests
 import os
+import asyncio
+
+screen_name = os.getenv("SPLATOON_SCREEN_NAME")
+channel = None
 
 class StatusEventListener(tweepy.StreamListener):
-    def on_status(self, status):
-        screen_name = os.getenv("SPLATOON_SCREEN_NAME")
-        if status.user.screen_name != screen_name:
+    async def handle_status(self, status):
+        if status.user.screen_name != screen_name or channel is None:
             return
         print(status.text)
         tweet_url = f"https://twitter.com/{screen_name}/status/{status.id_str}"
-        webhook = "https://discord.com/api/webhooks/822715010622816256/xl3q5NcET_uKkB7zjDpndH5IloVUJdP7OttFlKQBltm_EbvFVIq_iYWySuYYggXQkAUm"
-        requests.post(webhook, data={
-            "content": tweet_url
-        })
+        await channel.send(tweet_url)
+
+    def on_status(self, status):
+        asyncio.create_task(handle_status())
 
     def on_error(self, status_code):
         if status_code == 420:
@@ -35,11 +38,13 @@ def start_stream():
     listener = StatusEventListener()
     my_stream = tweepy.Stream(auth=auth, listener=listener)
 
-    my_stream.filter(follow=[os.getenv("SPLATOON_ID")],  is_async=True)
+    my_stream.filter(follow=[os.getenv("SPLATOON_ID")],  is_async=True, stall_warnings=True)
 
 class TweetCog(commands.Cog):
     def __init__(self, bot):
+        global channel
         self.bot = bot
+        channel = self.bot.get_channel(os.getenv("TWEET_NOTICE_CHANNEL_ID"))
         start_stream()
 
 def setup(bot):
