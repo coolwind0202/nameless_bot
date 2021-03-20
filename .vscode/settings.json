@@ -1,0 +1,7 @@
+{
+    // "python.pythonPath": "/usr/local/bin/python3"
+    "python.pythonPath": "C:\\Users\\erabl\\.virtualenvs\\Bot-FnMayL13\\Scripts\\python.exe",
+    "python.linting.pylintArgs": [
+        "--ignored-calsses", "TweetCog"
+    ]
+}
