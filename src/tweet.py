@@ -2,7 +2,6 @@ import tweepy
 from discord.ext import commands, tasks
 import requests
 
-
 class StatusEventListener(tweepy.StreamListener):
     def on_status(self, status):
         screen_name = "SplatoonJP"
@@ -23,11 +22,10 @@ class StatusEventListener(tweepy.StreamListener):
         # returning non-False reconnects the stream, with backoff.
 
 def start_stream():
-    consumer_key = "LaSNO4AVIF2NdfVJ2OTIoxBVS"
-    consumer_secret = "FReciwWnBuKrg19gDzutcyWRS457LJzmf9LQqD70Ue1iTOAb9P"
-
-    access_token = "1108637385972043781-ogbNnPqStiRRaJGQ9oHDfhQ0ZRjAdq"
-    access_token_secret = "e97oo8UuvK4Ww9XasgsbvWAqsc0SHGuy3eI9VHXytQl3e"
+    consumer_key = os.getenv("TWITTER_CONSUMER_KEY")
+    consumer_secret = os.getenv("TWITTER_CONSUMER_SECRET")
+    access_token = os.getenv("TWITTER_ACCESS_TOKEN")
+    access_token_secret = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
 
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
@@ -37,16 +35,11 @@ def start_stream():
     my_stream = tweepy.Stream(auth=auth, listener=listener)
 
     my_stream.filter(follow=["2888006497"],  is_async=True)
+    
 class TweetCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         start_stream()
-
-    @tasks.loop(minutes=15.0)
-    async def fetch_tweets(self):
-
-        for status in api.user_timeline(id="SplatoonJP"):
-            print(status.text)
 
 def setup(bot):
     bot.add_cog(TweetCog(bot))
