@@ -6,6 +6,7 @@ import asyncio
 
 screen_name = os.getenv("SPLATOON_SCREEN_NAME")
 channel = None
+loop = None
 
 class StatusEventListener(tweepy.StreamListener):
     async def handle_status(self, status):
@@ -16,7 +17,8 @@ class StatusEventListener(tweepy.StreamListener):
         await channel.send(tweet_url)
 
     def on_status(self, status):
-        loop = asyncio.get_event_loop()
+        if loop is None:
+            return
         loop.create_task(self.handle_status(status))
 
     def on_error(self, status_code):
@@ -42,9 +44,12 @@ def start_stream():
     my_stream.filter(follow=[os.getenv("SPLATOON_ID")],  is_async=True, stall_warnings=True)
 
 class TweetCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         global channel
+        global loop
+
         self.bot = bot
+        loop = self.bot.loop
         channel = self.bot.get_channel(int(os.getenv("TWEET_NOTICE_CHANNEL_ID")))
         start_stream()
 
