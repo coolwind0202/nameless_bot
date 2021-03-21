@@ -75,7 +75,7 @@ class FriendDB:
         self.cur.execute("INSERT INTO friend_code values(?, ?)", (friend_code, user_id))
         self.conn.commit()
 
-    def get_user_friend_codes(self, user_id: int) -> list[FriendCodeObject]:
+    def get_user_friend_codes(self, user_id: int):
         """
         指定されたユーザーID user_id から、該当ユーザーのフレンドコードとその備考をまとめたオブジェクトの、リストを返します。
         """
