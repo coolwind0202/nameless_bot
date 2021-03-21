@@ -19,6 +19,8 @@ class StatusEventListener(tweepy.StreamListener):
     def on_status(self, status):
         if loop is None:
             return
+        if loop.is_closed():
+            return
         loop.create_task(self.handle_status(status))
 
     def on_error(self, status_code):
