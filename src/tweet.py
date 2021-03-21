@@ -12,7 +12,6 @@ class StatusEventListener(tweepy.StreamListener):
     async def handle_status(self, status):
         if status.user.screen_name != screen_name or channel is None:
             return
-        print(status.text)
         tweet_url = f"https://twitter.com/{screen_name}/status/{status.id_str}"
         await channel.send(tweet_url)
 
