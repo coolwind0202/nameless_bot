@@ -1,13 +1,13 @@
-from discord.ext import commands
 import sqlite3
 import os
-from discord_slash import cog_ext, SlashContext, SlashCommand
-import textwrap
 import re
 import signal
-import discord
-import emoji
 
+import emoji
+import discord
+from discord.ext import commands
+
+from discord_slash import SlashContext, SlashCommand
 from discord_slash.utils.manage_commands import create_option
 from discord_slash.model import SlashCommandOptionType
 

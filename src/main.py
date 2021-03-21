@@ -1,20 +1,9 @@
-import discord
-import os
 from discord.ext import commands
-import traceback
-import datetime
-from discord_slash import SlashCommand
 
-import re
-import signal
-
-from discord_slash.utils.manage_commands import create_option
-from discord_slash.model import SlashCommandOptionType
-from discord_slash import cog_ext, SlashContext
-from friend import FriendDB
+import os
 
 PATHS = (
-    #"tweet",
+    "tweet",
     "friend",
 )
 
@@ -26,11 +15,4 @@ class NameLessBot(commands.Bot):
     
 
 bot = NameLessBot(command_prefix="/")
-
-
-print(os.getenv("DISCORD_TOKEN"))
-
-
-
-
 bot.run(os.getenv("DISCORD_TOKEN"))
