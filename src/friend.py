@@ -162,15 +162,15 @@ def setup(bot):
         if not codes:
             await ctx.send(content="まだフレンドコードが登録されていません。", hidden=True)
             return
+        embed = discord.Embed()
         numbers_emoji_raw = [":one:", ":two:", ":three:", ":four:"]
         numbers_emoji = []
-        content = ""
         for code_object, number in zip(codes, numbers_emoji_raw):
             em = emoji.emojize(number, use_aliases=True)
-            content += f"{em} | {code_object.code} / {code_object.memo}\n"
+            embed.add_field(name=em, value=f"{code_object.code} / {code_object.memo}")
             numbers_emoji.append(em)
 
-        bot_message = await ctx.send(content=f"メモを設定するフレンドコードを、リアクションで指定してください。\n\n{content}", hidden=True)
+        bot_message = await ctx.send(content="削除するフレンドコードを、リアクションで指定してください。", embed=embed)
         
         for em in numbers_emoji:
             await bot_message.add_reaction(em)
@@ -183,6 +183,7 @@ def setup(bot):
         target_code = codes[select_index].code
 
         db.remove_user_friend_code(target_code)
+        await bot_message.delete()
         await ctx.send("フレンドコードの削除が完了しました。", hidden=True)
 
     @slash.subcommand(
@@ -207,16 +208,15 @@ def setup(bot):
             await ctx.send(content="まだフレンドコードが登録されていません。", hidden=True)
             return
 
+        embed = discord.Embed()
         numbers_emoji_raw = [":one:", ":two:", ":three:", ":four:"]
         numbers_emoji = []
-        content = ""
-
         for code_object, number in zip(codes, numbers_emoji_raw):
             em = emoji.emojize(number, use_aliases=True)
-            content += f"{em} | {code_object.code} / {code_object.memo}\n"
+            embed.add_field(name=em, value=f"{code_object.code} / {code_object.memo}")
             numbers_emoji.append(em)
 
-        bot_message = await ctx.send(content=f"メモを設定するフレンドコードを、リアクションで指定してください。\n\n{content}", hidden=True)
+        bot_message = await ctx.send(content="メモを設定するフレンドコードを、リアクションで指定してください。", embed=embed)
         
         for em in numbers_emoji:
             await bot_message.add_reaction(em)
@@ -229,6 +229,7 @@ def setup(bot):
         target_code = codes[select_index].code
 
         db.set_memo(target_code, memo)
+        await bot_message.delete()
         await ctx.send("メモ内容の設定が完了しました。", hidden=True)
 
     @slash.subcommand(
