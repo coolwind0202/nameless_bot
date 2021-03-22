@@ -164,6 +164,7 @@ def setup(bot):
             return
         numbers_emoji_raw = [":one:", ":two:", ":three:", ":four:"]
         numbers_emoji = []
+        content = ""
         for code_object, number in zip(codes, numbers_emoji_raw):
             em = emoji.emojize(number, use_aliases=True)
             content += f"{em} | {code_object.code} / {code_object.memo}\n"
