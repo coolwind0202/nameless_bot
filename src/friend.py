@@ -138,12 +138,11 @@ def setup(bot):
         result = re.match(r"\d{4}-\d{4}-\d{4}", friend_code_raw)
         if not result:
             await ctx.send(
-                content="適切な形式のフレンドコードが送信されませんでした。正しい形式でもう一度送信してください。\n コードの例： `1234-5678-9012`"
-                )
+                content="適切な形式のフレンドコードが送信されませんでした。正しい形式でもう一度送信してください。\n コードの例： `1234-5678-9012`", hidden=True)
             return
 
         db.add_user_friend_code(ctx.author.id, result.group())
-        await ctx.send(content="フレンドコードをデータベースに登録しました。")
+        await ctx.send(content="フレンドコードをデータベースに登録しました。", hidden=True)
         await ctx.send(
             content="ヒント： `/friend memo` コマンドを使って、フレンドコードにメモを設定できます。メインアカウントとサブアカウントの区別などにお使いください。",
             hidden=True)
@@ -158,19 +157,19 @@ def setup(bot):
     async def _friend_delete(ctx: SlashContext):
         await ctx.respond()
 
+
         codes: list[FriendCodeObject] = db.get_user_friend_codes(ctx.author.id)
         if not codes:
-            await ctx.send(content="まだフレンドコードが登録されていません。")
+            await ctx.send(content="まだフレンドコードが登録されていません。", hidden=True)
             return
-        embed = discord.Embed()
         numbers_emoji_raw = [":one:", ":two:", ":three:", ":four:"]
         numbers_emoji = []
         for code_object, number in zip(codes, numbers_emoji_raw):
             em = emoji.emojize(number, use_aliases=True)
-            embed.add_field(name=em, value=f"{code_object.code} / {code_object.memo}")
+            content += f"{em} | {code_object.code} / {code_object.memo}\n")
             numbers_emoji.append(em)
 
-        bot_message = await ctx.send(content="削除するフレンドコードを、リアクションで指定してください。", embed=embed)
+        bot_message = await ctx.send(content=f"メモを設定するフレンドコードを、リアクションで指定してください。\n\n{content}", hidden=True)
         
         for em in numbers_emoji:
             await bot_message.add_reaction(em)
@@ -183,7 +182,7 @@ def setup(bot):
         target_code = codes[select_index].code
 
         db.remove_user_friend_code(target_code)
-        await ctx.send("フレンドコードの削除が完了しました。")
+        await ctx.send("フレンドコードの削除が完了しました。", hidden=True)
 
     @slash.subcommand(
         base="friend",
@@ -204,18 +203,19 @@ def setup(bot):
 
         codes: list[FriendCodeObject] = db.get_user_friend_codes(ctx.author.id)
         if not codes:
-            await ctx.send(content="まだフレンドコードが登録されていません。")
+            await ctx.send(content="まだフレンドコードが登録されていません。", hidden=True)
             return
 
-        embed = discord.Embed()
         numbers_emoji_raw = [":one:", ":two:", ":three:", ":four:"]
         numbers_emoji = []
+        content = ""
+
         for code_object, number in zip(codes, numbers_emoji_raw):
             em = emoji.emojize(number, use_aliases=True)
-            embed.add_field(name=em, value=f"{code_object.code} / {code_object.memo}")
+            content += f"{em} | {code_object.code} / {code_object.memo}\n")
             numbers_emoji.append(em)
 
-        bot_message = await ctx.send(content="メモを設定するフレンドコードを、リアクションで指定してください。", embed=embed)
+        bot_message = await ctx.send(content=f"メモを設定するフレンドコードを、リアクションで指定してください。\n\n{content}", hidden=True)
         
         for em in numbers_emoji:
             await bot_message.add_reaction(em)
@@ -228,7 +228,7 @@ def setup(bot):
         target_code = codes[select_index].code
 
         db.set_memo(target_code, memo)
-        await ctx.send("メモ内容の設定が完了しました。")
+        await ctx.send("メモ内容の設定が完了しました。", hidden=True)
 
     @slash.subcommand(
         base="friend",
