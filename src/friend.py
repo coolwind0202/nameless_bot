@@ -75,6 +75,14 @@ class FriendDB:
         self.cur.execute("INSERT INTO friend_code values(?, ?)", (friend_code, user_id))
         self.conn.commit()
 
+    def remove_user_friend_code(self, friend_code: str) -> None:
+        """
+        指定されたフレンドコード friend_code を削除します。
+        """
+        self.cur.execute("DELETE FROM friend_code WHERE code = ?", (friend_code, ))
+        self.cur.execute("DELETE FROM friend_code_memo WHERE code = ?", (friend_code, ))
+        self.conn.commit()
+
     def get_user_friend_codes(self, user_id: int):
         """
         指定されたユーザーID user_id から、該当ユーザーのフレンドコードとその備考をまとめたオブジェクトの、リストを返します。
@@ -109,7 +117,7 @@ def setup(bot):
     db_name = os.getenv("FRIEND_DATABASE_NAME")
     db = FriendDB(db_name)
     signal.signal(signal.SIGTERM, db.connect_close) # プログラムの終了直前にデータベースとの接続を閉じておく
-
+    
     @slash.subcommand(
         base="friend",
         name="add", 
@@ -118,8 +126,8 @@ def setup(bot):
         guild_ids=guild_ids,
         options=[
             create_option(
-                "フレンドコード",
-                "登録するフレンドコード。",
+                name="フレンドコード",
+                description="登録するフレンドコード。",
                 option_type=SlashCommandOptionType.STRING,
                 required=True
             )
@@ -142,11 +150,53 @@ def setup(bot):
 
     @slash.subcommand(
         base="friend",
+        name="delete",
+        description="既存のフレンドコードを削除します。",
+        base_desc="フレンドコードに関する機能を提供します。",
+        guild_ids=guild_ids
+    )
+    async def _friend_delete(ctx: SlashContext):
+        await ctx.respond()
+
+        codes: list[FriendCodeObject] = db.get_user_friend_codes(ctx.author.id)
+        if not codes:
+            await ctx.send(content="まだフレンドコードが登録されていません。")
+            return
+        embed = discord.Embed()
+        numbers_emoji_raw = [":one:", ":two:", ":three:", ":four:"]
+        numbers_emoji = []
+        for code_object, number in zip(codes, numbers_emoji_raw):
+            em = emoji.emojize(number, use_aliases=True)
+            embed.add_field(name=em, value=f"{code_object.code} / {code_object.memo}")
+            numbers_emoji.append(em)
+
+        bot_message = await ctx.send(content="削除するフレンドコードを、リアクションで指定してください。", embed=embed)
+        
+        for em in numbers_emoji:
+            await bot_message.add_reaction(em)
+
+        def reaction_check(reaction: discord.Reaction, user: discord.User):
+            return user == ctx.author and reaction.message.id == bot_message.id
+
+        reaction, _ = await bot.wait_for("reaction_add", check=reaction_check)
+        select_index = numbers_emoji.index(str(reaction.emoji))
+        target_code = codes[select_index].code
+
+        db.remove_user_friend_code(target_code)
+        await ctx.send("フレンドコードの削除が完了しました。")
+
+    @slash.subcommand(
+        base="friend",
         name="memo",
         description="既存のフレンドコードにメモを設定します。",
         base_desc="フレンドコードに関する機能を提供します。",
         options=[
-            create_option(name="メモ内容",description="設定するメモの内容",option_type=SlashCommandOptionType.STRING, required=True)
+            create_option(
+                name="メモ内容",
+                description="設定するメモの内容",
+                option_type=SlashCommandOptionType.STRING, 
+                required=True
+            )
         ],
         guild_ids=guild_ids)
     async def _friend_memo(ctx: SlashContext, memo):
@@ -188,8 +238,8 @@ def setup(bot):
         guild_ids=guild_ids,
         options=[
             create_option(
-                "ユーザー",
-                "フレンドコードを取得するユーザー。",
+                name="ユーザー",
+                description="フレンドコードを取得するユーザー。",
                 option_type=SlashCommandOptionType.USER,
                 required=True
             )
