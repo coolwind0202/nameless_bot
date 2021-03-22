@@ -2,24 +2,37 @@ import tweepy
 from discord.ext import commands, tasks
 import requests
 import os
+from threading import Thread
+from queue import Queue
 import asyncio
 
 screen_name = os.getenv("SPLATOON_SCREEN_NAME")
 channel = None
 
 class StatusEventListener(tweepy.StreamListener):
-    async def handle_status(self, status):
-        if status.user.screen_name != screen_name or channel is None:
-            return
-        tweet_url = f"https://twitter.com/{screen_name}/status/{status.id_str}"
-        await channel.send(tweet_url)
+    def __init__(self, q = Queue()):
+        num_worker_threads = 4
+        self.q = q
+        for _ in range(num_worker_threads):
+             t = Thread(target=self.do_stuff)
+             t.daemon = True
+             t.start()
+
+    def do_stuff(self):
+        while True:
+            status = self.q.get()
+            tweet_url = f"https://twitter.com/{screen_name}/status/{status.id_str}"
+            if status.user.screen_name != screen_name or channel is None:
+                continue
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(channel.send(tweet_url))
+            except RuntimeError:
+                pass
+            self.q.task_done()
 
     def on_status(self, status):
-        try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(self.handle_status(status))
-        except RuntimeError:
-            pass
+        self.q.put(status)
 
     def on_error(self, status_code):
         if status_code == 420:
