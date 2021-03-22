@@ -12,7 +12,6 @@ class NameLessBot(commands.Bot):
         for path in PATHS:
             self.load_extension(path)
         print("ready...")
-    
 
 bot = NameLessBot(command_prefix="/")
 bot.run(os.getenv("DISCORD_TOKEN"))
