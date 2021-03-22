@@ -46,7 +46,6 @@ def start_stream():
 class TweetCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         global channel
-        global loop
 
         self.bot = bot
         channel = self.bot.get_channel(int(os.getenv("TWEET_NOTICE_CHANNEL_ID")))

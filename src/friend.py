@@ -166,7 +166,7 @@ def setup(bot):
         numbers_emoji = []
         for code_object, number in zip(codes, numbers_emoji_raw):
             em = emoji.emojize(number, use_aliases=True)
-            content += f"{em} | {code_object.code} / {code_object.memo}\n")
+            content += f"{em} | {code_object.code} / {code_object.memo}\n"
             numbers_emoji.append(em)
 
         bot_message = await ctx.send(content=f"メモを設定するフレンドコードを、リアクションで指定してください。\n\n{content}", hidden=True)
@@ -212,7 +212,7 @@ def setup(bot):
 
         for code_object, number in zip(codes, numbers_emoji_raw):
             em = emoji.emojize(number, use_aliases=True)
-            content += f"{em} | {code_object.code} / {code_object.memo}\n")
+            content += f"{em} | {code_object.code} / {code_object.memo}\n"
             numbers_emoji.append(em)
 
         bot_message = await ctx.send(content=f"メモを設定するフレンドコードを、リアクションで指定してください。\n\n{content}", hidden=True)
