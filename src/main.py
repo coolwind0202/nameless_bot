@@ -3,7 +3,7 @@ from discord.ext import commands
 import os
 
 PATHS = (
-    #"tweet",
+    "tweet",
     "friend",
 )
 
