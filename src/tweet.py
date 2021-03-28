@@ -5,6 +5,7 @@ import os
 from threading import Thread
 from queue import Queue
 import asyncio
+import traceback
 
 screen_name = os.getenv("SPLATOON_SCREEN_NAME")
 channel = None
@@ -22,13 +23,14 @@ class StatusEventListener(tweepy.StreamListener):
         while True:
             status = self.q.get()
             tweet_url = f"https://twitter.com/{screen_name}/status/{status.id_str}"
+            print(tweet_url)
             if status.user.screen_name != screen_name or channel is None:
                 continue
             try:
                 loop = asyncio.get_running_loop()
                 loop.create_task(channel.send(tweet_url))
             except RuntimeError:
-                pass
+                traceback.print_exc()
             self.q.task_done()
 
     def on_status(self, status):
