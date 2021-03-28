@@ -24,7 +24,6 @@ class StatusEventListener(tweepy.StreamListener):
         while True:
             status = self.q.get()
             tweet_url = f"https://twitter.com/{screen_name}/status/{status.id_str}"
-            print(tweet_url)
             if status.user.screen_name != screen_name or channel is None:
                 continue
             try:
