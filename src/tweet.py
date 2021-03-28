@@ -12,6 +12,7 @@ channel = None
 
 class StatusEventListener(tweepy.StreamListener):
     def __init__(self, q = Queue()):
+        super().__init__()
         num_worker_threads = 4
         self.q = q
         for _ in range(num_worker_threads):
