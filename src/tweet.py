@@ -27,9 +27,9 @@ class StatusEventListener(tweepy.StreamListener):
             if status.user.screen_name != screen_name or channel is None:
                 continue
             try:
-                loop = asyncio.get_running_loop()
+                loop = asyncio.get_event_loop()
                 loop.create_task(channel.send(tweet_url))
-            except RuntimeError:
+            except:
                 traceback.print_exc()
             self.q.task_done()
 
