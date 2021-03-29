@@ -28,11 +28,15 @@ class StatusEventListener(tweepy.StreamListener):
                 continue
             try:
                 loop = asyncio.get_event_loop()
-                loop.create_task(channel.send(tweet_url))
-            except:
+                loop.create_task(channel.send(tweet_url))                
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                self.q.put(status)
                 traceback.print_exc()
-            self.q.task_done()
-
+            finally:
+                self.q.task_done()
+            
     def on_status(self, status):
         self.q.put(status)
 
