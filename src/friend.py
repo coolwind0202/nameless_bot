@@ -117,6 +117,14 @@ def setup(bot):
     db_name = os.getenv("FRIEND_DATABASE_NAME")
     db = FriendDB(db_name)
     signal.signal(signal.SIGTERM, db.connect_close) # プログラムの終了直前にデータベースとの接続を閉じておく
+
+    @slash.slash(
+        name="ping",
+        guild_ids=guild_ids
+    )
+    async def _ping(ctx: SlashContext):
+        await ctx.respond()
+        await ctx.send("pong")
     
     @slash.subcommand(
         base="friend",

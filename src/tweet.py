@@ -6,6 +6,8 @@ from threading import Thread
 from queue import Queue
 import asyncio
 import traceback
+import urllib3
+import http
 
 screen_name = os.getenv("SPLATOON_SCREEN_NAME")
 print(screen_name)
@@ -68,9 +70,20 @@ def start_stream():
 
     api = tweepy.API(auth)
     listener = StatusEventListener(loop=asyncio.get_event_loop())
-    my_stream = tweepy.Stream(auth=auth, listener=listener)
-
-    my_stream.filter(follow=[os.getenv("SPLATOON_ID")], is_async=True, stall_warnings=True)
+    is_running = False
+    
+    while True:
+        if is_running:
+            continue
+        try:
+            my_stream = tweepy.Stream(auth=auth, listener=listener)
+            my_stream.filter(follow=[os.getenv("SPLATOON_ID")], is_async=True)
+            is_running = True
+            print(is_running)
+        except (urllib3.exceptions.ProtocolError, http.client.IncompleteRead):
+            print("occur reconnecting")
+            is_running = False
+            continue
 
 class TweetCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -79,6 +92,7 @@ class TweetCog(commands.Cog):
         self.bot = bot
         channel = self.bot.get_channel(int(os.getenv("TWEET_NOTICE_CHANNEL_ID")))
         start_stream()
+        
 
 def setup(bot):
     bot.add_cog(TweetCog(bot))
