@@ -59,20 +59,11 @@ class StatusEventListener(tweepy.StreamListener):
     def on_disconnect(self, s):
         print(s)
 
-def start_stream():
-    consumer_key = os.getenv("TWITTER_CONSUMER_KEY")
-    consumer_secret = os.getenv("TWITTER_CONSUMER_SECRET")
-    access_token = os.getenv("TWITTER_ACCESS_TOKEN")
-    access_token_secret = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
 
-    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
-
-    api = tweepy.API(auth)
-    listener = StatusEventListener(loop=asyncio.get_event_loop())
+async def run(auth, listener):
     is_running = False
-    
     while True:
+        await asyncio.sleep(0)
         if is_running:
             continue
         try:
@@ -85,6 +76,19 @@ def start_stream():
             is_running = False
             continue
 
+
+def start_stream():
+    consumer_key = os.getenv("TWITTER_CONSUMER_KEY")
+    consumer_secret = os.getenv("TWITTER_CONSUMER_SECRET")
+    access_token = os.getenv("TWITTER_ACCESS_TOKEN")
+    access_token_secret = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
+
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    loop = asyncio.get_event_loop()
+    listener = StatusEventListener(loop=loop)
+    loop.create_task(run(auth, listener))
+    
 class TweetCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         global channel
