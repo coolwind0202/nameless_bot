@@ -8,11 +8,13 @@ import asyncio
 import traceback
 
 screen_name = os.getenv("SPLATOON_SCREEN_NAME")
+print(screen_name)
 channel = None
 
 class StatusEventListener(tweepy.StreamListener):
-    def __init__(self, q = Queue()):
+    def __init__(self, loop, q = Queue()):
         super().__init__()
+        self.loop = loop
         num_worker_threads = 4
         self.q = q
         for _ in range(num_worker_threads):
@@ -27,12 +29,16 @@ class StatusEventListener(tweepy.StreamListener):
             if status.user.screen_name != screen_name or channel is None:
                 continue
             try:
-                loop = asyncio.get_event_loop()
-                loop.create_task(channel.send(tweet_url))                
+                asyncio.run_coroutine_threadsafe(channel.send(tweet_url), self.loop)
             except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                self.q.put(status)
+                try:
+                    self.loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(self.loop)
+                    asyncio.run_coroutine_threadsafe(channel.send(tweet_url), self.loop)
+                except:
+                    traceback.print_exc()
+                traceback.print_exc()
+            except:
                 traceback.print_exc()
             finally:
                 self.q.task_done()
@@ -43,9 +49,13 @@ class StatusEventListener(tweepy.StreamListener):
     def on_error(self, status_code):
         if status_code == 420:
             #returning False in on_error disconnects the stream
+            print("error-code: 420")
             return False
 
         # returning non-False reconnects the stream, with backoff.
+
+    def on_disconnect(self, s):
+        print(s)
 
 def start_stream():
     consumer_key = os.getenv("TWITTER_CONSUMER_KEY")
@@ -57,7 +67,7 @@ def start_stream():
     auth.set_access_token(access_token, access_token_secret)
 
     api = tweepy.API(auth)
-    listener = StatusEventListener()
+    listener = StatusEventListener(loop=asyncio.get_event_loop())
     my_stream = tweepy.Stream(auth=auth, listener=listener)
 
     my_stream.filter(follow=[os.getenv("SPLATOON_ID")], is_async=True, stall_warnings=True)
