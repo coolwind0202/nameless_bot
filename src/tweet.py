@@ -74,7 +74,7 @@ def start_stream():
     auth.set_access_token(access_token, access_token_secret)
     loop = asyncio.get_event_loop()
     listener = StatusEventListener(loop=loop, error_callback=lambda: run(auth, listener))
-    loop.create_task(run(auth, listener))
+    run(auth, listener)
     
 class TweetCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
