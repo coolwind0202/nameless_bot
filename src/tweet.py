@@ -14,11 +14,12 @@ print(screen_name)
 channel = None
 
 class StatusEventListener(tweepy.StreamListener):
-    def __init__(self, loop, q = Queue()):
+    def __init__(self, loop, error_callback, q = Queue()):
         super().__init__()
         self.loop = loop
-        num_worker_threads = 4
+        self.error_callback = error_callback
         self.q = q
+        num_worker_threads = 4
         for _ in range(num_worker_threads):
              t = Thread(target=self.do_stuff)
              t.daemon = True
@@ -51,26 +52,17 @@ class StatusEventListener(tweepy.StreamListener):
 
         # returning non-False reconnects the stream, with backoff.
 
+    def on_exception(self):
+        asyncio.run_coroutine_threadsafe(channel.send("Error: ツイートのストリーミングに失敗しました"), self.loop)
+        self.error_callback()
+
     def on_disconnect(self, s):
         print(s)
 
 
-async def run(auth, listener):
-    is_running = False
-    while True:
-        await asyncio.sleep(0)
-        if is_running:
-            continue
-        try:
-            my_stream = tweepy.Stream(auth=auth, listener=listener)
-            my_stream.filter(follow=[os.getenv("SPLATOON_ID")], is_async=True)
-            is_running = True
-            print(is_running)
-        except (urllib3.exceptions.ProtocolError, http.client.IncompleteRead):
-            print("occur reconnecting")
-            is_running = False
-            continue
-
+def run(auth, listener):
+    my_stream = tweepy.Stream(auth=auth, listener=listener)
+    my_stream.filter(follow=[os.getenv("SPLATOON_ID")], is_async=True)
 
 def start_stream():
     consumer_key = os.getenv("TWITTER_CONSUMER_KEY")
@@ -81,7 +73,7 @@ def start_stream():
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
     loop = asyncio.get_event_loop()
-    listener = StatusEventListener(loop=loop)
+    listener = StatusEventListener(loop=loop, error_callback=lambda: run(auth, listener))
     loop.create_task(run(auth, listener))
     
 class TweetCog(commands.Cog):
