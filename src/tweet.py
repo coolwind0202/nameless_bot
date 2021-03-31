@@ -30,20 +30,15 @@ class StatusEventListener(tweepy.StreamListener):
             tweet_url = f"https://twitter.com/{screen_name}/status/{status.id_str}"
             if status.user.screen_name != screen_name or channel is None:
                 continue
-            try:
-                asyncio.run_coroutine_threadsafe(channel.send(tweet_url), self.loop)
-            except RuntimeError:
-                try:
-                    self.loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(self.loop)
-                    asyncio.run_coroutine_threadsafe(channel.send(tweet_url), self.loop)
-                except:
-                    traceback.print_exc()
-                traceback.print_exc()
-            except:
-                traceback.print_exc()
-            finally:
-                self.q.task_done()
+            rt = status._json.get("retweeted_status")
+            if rt is not None:
+                if rt["user"]["name"] != screen_name:
+                    tweet_content = f"{status.user.name} さんがリツイートしました： {tweet_url}"
+            else:
+                tweet_content = f"{status.user.name} さんがツイートしました： {tweet_url}"
+
+            asyncio.run_coroutine_threadsafe(channel.send(tweet_content), self.loop)
+            self.q.task_done()
             
     def on_status(self, status):
         self.q.put(status)
