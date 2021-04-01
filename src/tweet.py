@@ -52,8 +52,8 @@ class StatusEventListener(tweepy.StreamListener):
 
         # returning non-False reconnects the stream, with backoff.
 
-    def on_exception(self):
-        asyncio.run_coroutine_threadsafe(channel.send("Error: ツイートのストリーミングに失敗しました"), self.loop)
+    def on_exception(self, info):
+        asyncio.run_coroutine_threadsafe(channel.send(f"Error: ツイートのストリーミングに失敗しました\n `{info}`"), self.loop)
         self.error_callback()
 
     def on_disconnect(self, s):
