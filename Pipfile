@@ -4,11 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-tweepy = "*"
 "discord.py" = "*"
 pylint = "*"
 discord-py-slash-command = "*"
 emoji = "*"
+tweepy = "*"
 
 [dev-packages]
 

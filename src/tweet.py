@@ -13,6 +13,8 @@ screen_name = os.getenv("SPLATOON_SCREEN_NAME")
 print(screen_name)
 channel = None
 
+
+
 class StatusEventListener(tweepy.StreamListener):
     def __init__(self, loop, error_callback, q = Queue()):
         super().__init__()
@@ -61,6 +63,7 @@ class StatusEventListener(tweepy.StreamListener):
 
 
 def run(auth, listener):
+    print("runned")
     my_stream = tweepy.Stream(auth=auth, listener=listener)
     my_stream.filter(follow=[os.getenv("SPLATOON_ID")], is_async=True)
 
