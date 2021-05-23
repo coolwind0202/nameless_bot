@@ -1,19 +1,14 @@
 import tweepy
-from discord.ext import commands, tasks
-import requests
+from discord.ext import commands
 import os
 from threading import Thread
 from queue import Queue
 import asyncio
-import traceback
-import urllib3
-import http
+import datetime
 
 screen_name = os.getenv("SPLATOON_SCREEN_NAME")
 print(screen_name)
 channel = None
-
-
 
 class StatusEventListener(tweepy.StreamListener):
     def __init__(self, loop, error_callback, q = Queue()):
@@ -49,18 +44,16 @@ class StatusEventListener(tweepy.StreamListener):
     def on_error(self, status_code):
         if status_code == 420:
             #returning False in on_error disconnects the stream
-            print("error-code: 420")
             return False
 
         # returning non-False reconnects the stream, with backoff.
 
     def on_exception(self, info):
-        asyncio.run_coroutine_threadsafe(channel.send(f"Error: ツイートのストリーミングに失敗しました\n `{info}`"), self.loop)
+        print(f"{datetime.datetime.now()} - Error: ツイートのストリーミングに失敗しました\n `{info}`")
         self.error_callback()
 
     def on_disconnect(self, s):
         print(s)
-
 
 def run(auth, listener):
     print("runned")
