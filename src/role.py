@@ -1,5 +1,6 @@
 import re
 import asyncio
+import os
 
 import discord
 from discord.ext import commands
@@ -13,7 +14,7 @@ class RoleCog(commands.Cog):
 
     async def set_reaction_channel(self):
         await self.bot.wait_until_ready()
-        self.reaction_channel = self.bot.get_channel(813583047609942026)
+        self.reaction_channel = self.bot.get_channel(int(os.getenv("REACTION_CHANNEL_ID")))
         print(self.reaction_channel.name)
 
     def find_roles(self, embed: discord.Embed, guild: discord.Guild):

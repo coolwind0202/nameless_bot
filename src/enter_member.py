@@ -13,13 +13,12 @@ class EnterMemberCog(commands.Cog):
     
     async def set_rule_channel_and_role(self):
         await self.bot.wait_until_ready()
-        self.rule_channel = self.bot.get_channel(os.getenv("RULE_CHANNEL_ID"))
+        self.rule_channel = self.bot.get_channel(int(os.getenv("RULE_CHANNEL_ID")))
         self.rule_role = discord.utils.get(self.rule_channel.guild.roles, name="メンバー")
-        print(self.rule_channel)
 
     @commands.Cog.listener(name="on_raw_reaction_add")
     async def approve_member(self, payload: discord.RawReactionActionEvent):
-        if payload.channel_id != os.getenv("RULE_CHANNEL_ID"):
+        if payload.channel_id != self.rule_channel.id:
             return
 
         if str(payload.emoji) == emoji.emojize(":thumbsup:", use_aliases=True):
