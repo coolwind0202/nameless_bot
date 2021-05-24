@@ -8,13 +8,16 @@ PATHS = (
     "friend",
     "role",
     "settings",
+    "enter_member"
 )
 
 class NameLessBot(commands.Bot):
-    async def on_ready(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         for path in PATHS:
             self.load_extension(path)
-        self.reaction_channel = self.get_channel(813583047609942026)
+        
+    async def on_ready(self):
         print("ready...")
 
 bot = NameLessBot(command_prefix="/")

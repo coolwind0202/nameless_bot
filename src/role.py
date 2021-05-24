@@ -1,4 +1,5 @@
 import re
+import asyncio
 
 import discord
 from discord.ext import commands
@@ -8,6 +9,12 @@ import emoji
 class RoleCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        asyncio.get_event_loop().create_task(self.set_reaction_channel())
+
+    async def set_reaction_channel(self):
+        await self.bot.wait_until_ready()
+        self.reaction_channel = self.bot.get_channel(813583047609942026)
+        print(self.reaction_channel.name)
 
     def find_roles(self, embed: discord.Embed, guild: discord.Guild):
         reaction_to_role = {}
@@ -30,10 +37,10 @@ class RoleCog(commands.Cog):
     @commands.Cog.listener(name="on_raw_reaction_add")
     async def process_role_reaction(self, payload: discord.RawReactionActionEvent):
         reaction = str(payload.emoji)
-        if payload.channel_id != self.bot.reaction_channel.id:
+        if payload.channel_id != self.reaction_channel.id:
             return
 
-        message: discord.Message = await self.bot.reaction_channel.fetch_message(payload.message_id)
+        message: discord.Message = await self.reaction_channel.fetch_message(payload.message_id)
         reaction_to_role = self.find_roles(message.embeds[0], message.guild)
         
         if not reaction_to_role:
