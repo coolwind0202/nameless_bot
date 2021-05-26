@@ -21,24 +21,28 @@ class ReaderCog(commands.Cog):
         self.bot.loop.create_task(self.worker())
 
     async def worker(self):
-        while True:
-            await asyncio.sleep(0)
-            element: QueueElement = await self.message_queue.get()
-            voice = element.guild.voice_client
+        await asyncio.sleep(0)
+        element: QueueElement = await self.message_queue.get()
+        voice = element.guild.voice_client
 
-            if voice is None:
-                continue
+        if voice is None:
+            return
+        
+        output =  tempfile.NamedTemporaryFile(suffix=".wav")
+        command = f"open_jtalk -x {self.dic_path} -m {self.model_path} -r 1.0 -ow {output.name}"
+        print(command)
+        proc = subprocess.run(
+            command, shell = True, input=element.content.encode()
+        )
+        output.seek(0)
+
+        source = discord.FFmpegOpusAudio(output.name)
+
+        def after(e):
+            output.close()
+            self.bot.loop.create_task(self.worker())
             
-            output =  tempfile.NamedTemporaryFile(suffix=".wav")
-            command = f"open_jtalk -x {self.dic_path} -m {self.model_path} -r 1.0 -ow {output.name}"
-            print(command)
-            proc = subprocess.run(
-                command, shell = True, input=element.content.encode()
-            )
-            output.seek(0)
-
-            source = discord.FFmpegOpusAudio(output.name)
-            voice.play(source, after=lambda e: output.close())
+        voice.play(source, after=after)
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
