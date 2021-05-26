@@ -110,8 +110,6 @@ class FriendDB:
         self.conn.close()
     
 def setup(bot):
-    slash = SlashCommand(bot, sync_commands=True)
-
     guild_ids = [813577333516402728] # コマンドを追加するサーバーのIDリスト
 
     db_name = os.getenv("FRIEND_DATABASE_NAME")
