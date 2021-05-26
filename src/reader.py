@@ -24,7 +24,7 @@ class ReaderCog(commands.Cog):
         while True:
             await asyncio.sleep(0)
             element: QueueElement = await self.message_queue.get()
-            voice = QueueElement.guild.voice_client
+            voice = element.guild.voice_client
 
             if voice is None:
                 continue
