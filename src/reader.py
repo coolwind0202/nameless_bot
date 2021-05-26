@@ -59,7 +59,8 @@ def setup(bot):
 
     @slash.slash(
         name="join",
-        guild_ids = guild_ids
+        guild_ids = guild_ids,
+        description="このコマンドを実行したメンバーのボイスチャンネルで、読み上げを開始します。"
     )
     async def _join(ctx: SlashContext):
         if ctx.author.voice and ctx.author.voice.channel:
@@ -71,7 +72,8 @@ def setup(bot):
     
     @slash.slash(
         name="leave",
-        guild_ids = guild_ids
+        guild_ids = guild_ids,
+        description="読み上げを終了します。"
     )
     async def _leave(ctx: SlashContext):
         if ctx.guild.voice_client is not None:
