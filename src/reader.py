@@ -54,10 +54,10 @@ class ReaderCog(commands.Cog):
         await self.message_queue.put(QueueElement(message.guild, message.content))
 
 def setup(bot):
-    slash = SlashCommand(bot, sync_commands=True)
+    
     guild_ids = [813577333516402728]
 
-    @slash.slash(
+    @bot.slash.slash(
         name="join",
         guild_ids = guild_ids,
         description="このコマンドを実行したメンバーのボイスチャンネルで、読み上げを開始します。"
@@ -70,7 +70,7 @@ def setup(bot):
             return
         await ctx.send(content=f"チャンネル {ctx.author.voice.channel.name} に参加しました。")
     
-    @slash.slash(
+    @bot.slash.slash(
         name="leave",
         guild_ids = guild_ids,
         description="読み上げを終了します。"

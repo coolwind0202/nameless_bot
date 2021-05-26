@@ -118,14 +118,14 @@ def setup(bot):
     db = FriendDB(db_name)
     signal.signal(signal.SIGTERM, db.connect_close) # プログラムの終了直前にデータベースとの接続を閉じておく
 
-    @slash.slash(
+    @bot.slash.slash(
         name="ping",
         guild_ids=guild_ids
     )
     async def _ping(ctx: SlashContext):
         await ctx.send("pong")
     
-    @slash.subcommand(
+    @bot.slash.subcommand(
         base="friend",
         name="add", 
         description="フレンドコードを追加します。",
@@ -152,7 +152,7 @@ def setup(bot):
             content="ヒント： `/friend memo` コマンドを使って、フレンドコードにメモを設定できます。メインアカウントとサブアカウントの区別などにお使いください。",
             hidden=True)
 
-    @slash.subcommand(
+    @bot.slash.subcommand(
         base="friend",
         name="delete",
         description="既存のフレンドコードを削除します。",
@@ -188,7 +188,7 @@ def setup(bot):
         await bot_message.delete()
         await ctx.send("フレンドコードの削除が完了しました。", hidden=True)
 
-    @slash.subcommand(
+    @bot.slash.subcommand(
         base="friend",
         name="memo",
         description="既存のフレンドコードにメモを設定します。",
@@ -232,7 +232,7 @@ def setup(bot):
         await bot_message.delete()
         await ctx.send("メモ内容の設定が完了しました。", hidden=True)
 
-    @slash.subcommand(
+    @bot.slash.subcommand(
         base="friend",
         name="show",
         description="ユーザーのフレンドコードを表示します。",
