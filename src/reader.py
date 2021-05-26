@@ -44,6 +44,8 @@ class ReaderCog(commands.Cog):
     async def on_message(self, message: discord.Message):
         if message.channel.id != 813598124387860580:
             return
+        if message.guild.voice_client is None:
+            await message.author.voice.channel.connect()
         await self.message_queue.put(QueueElement(message.guild, message.content))        
 
 def setup(bot):
