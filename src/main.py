@@ -16,7 +16,7 @@ PATHS = (
 class NameLessBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.slash = SlashCommand(bot, sync_commands=True)
+        self.slash = SlashCommand(self, sync_commands=True)
         for path in PATHS:
             self.load_extension(path)
         
