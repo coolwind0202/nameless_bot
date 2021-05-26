@@ -62,8 +62,6 @@ def setup(bot):
         guild_ids = guild_ids
     )
     async def _join(ctx: SlashContext):
-        await ctx.respond()
-
         if ctx.author.voice and ctx.author.voice.channel:
             await ctx.author.voice.channel.connect()
         else:
@@ -76,8 +74,6 @@ def setup(bot):
         guild_ids = guild_ids
     )
     async def _leave(ctx: SlashContext):
-        await ctx.respond()
-
         if ctx.guild.voice_client is not None:
             await ctx.guild.voice_client.disconnect()
         

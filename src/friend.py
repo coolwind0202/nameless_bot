@@ -123,7 +123,6 @@ def setup(bot):
         guild_ids=guild_ids
     )
     async def _ping(ctx: SlashContext):
-        await ctx.respond()
         await ctx.send("pong")
     
     @slash.subcommand(
@@ -141,8 +140,6 @@ def setup(bot):
             )
         ])
     async def _friend_add(ctx: SlashContext, friend_code_raw: str):
-        await ctx.respond()
-
         result = re.match(r"\d{4}-\d{4}-\d{4}", friend_code_raw)
         if not result:
             await ctx.send(
@@ -163,9 +160,6 @@ def setup(bot):
         guild_ids=guild_ids
     )
     async def _friend_delete(ctx: SlashContext):
-        await ctx.respond()
-
-
         codes: list[FriendCodeObject] = db.get_user_friend_codes(ctx.author.id)
         if not codes:
             await ctx.send(content="まだフレンドコードが登録されていません。", hidden=True)
@@ -209,8 +203,6 @@ def setup(bot):
         ],
         guild_ids=guild_ids)
     async def _friend_memo(ctx: SlashContext, memo):
-        await ctx.respond()
-
         codes: list[FriendCodeObject] = db.get_user_friend_codes(ctx.author.id)
         if not codes:
             await ctx.send(content="まだフレンドコードが登録されていません。", hidden=True)
@@ -256,7 +248,6 @@ def setup(bot):
         ]
     )
     async def _friend_show(ctx: SlashContext, user: discord.Member):
-        await ctx.respond()
         codes: list[FriendCodeObject] = db.get_user_friend_codes(user.id)
 
         if not codes:
