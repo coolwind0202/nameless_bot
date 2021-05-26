@@ -17,22 +17,22 @@ class ReaderCog(commands.Cog):
 
         voice_path = f"{message.channel.id}{message.id}.wav"
 
-        with tempfile.NamedTemporaryFile(suffix=".wav") as output:
-            content: str = message.content
-            command = f"open_jtalk -x {self.dic_path} -m {self.model_path} -r 1.0 -ow {output.name}"
-            print(command)
-            proc = subprocess.run(
-                command, shell = True, input=content.encode()
-            )
+        output =  tempfile.NamedTemporaryFile(suffix=".wav")
+        content: str = message.content
+        command = f"open_jtalk -x {self.dic_path} -m {self.model_path} -r 1.0 -ow {output.name}"
+        print(command)
+        proc = subprocess.run(
+            command, shell = True, input=content.encode()
+        )
 
-            output.seek(0)
+        output.seek(0)
 
-            source = discord.FFmpegOpusAudio(output.name)
-            if message.guild.voice_client is None:
-                voice: discord.VoiceClient = await message.author.voice.channel.connect()
-            else:
-                voice: discord.VoiceClient = message.guild.voice_client
-            voice.play(source)
+        source = discord.FFmpegOpusAudio(output.name)
+        if message.guild.voice_client is None:
+            voice: discord.VoiceClient = await message.author.voice.channel.connect()
+        else:
+            voice: discord.VoiceClient = message.guild.voice_client
+        voice.play(source, lambda: output.close())
 
 def setup(bot):
     bot.add_cog(ReaderCog(bot))
