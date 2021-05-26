@@ -5,7 +5,10 @@ import tempfile
 import dataclasses
 
 import discord
+from discord import guild
 from discord.ext import commands
+
+from discord_slash import SlashContext, SlashCommand
 
 @dataclasses.dataclass
 class QueueElement:
@@ -41,16 +44,43 @@ class ReaderCog(commands.Cog):
         def after(e):
             output.close()
             self.bot.loop.create_task(self.worker())
-            
+
         voice.play(source, after=after)
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.channel.id != 813598124387860580:
-            return
         if message.guild.voice_client is None:
-            await message.author.voice.channel.connect()
-        await self.message_queue.put(QueueElement(message.guild, message.content))        
+            return
+        await self.message_queue.put(QueueElement(message.guild, message.content))
 
 def setup(bot):
+    slash = SlashCommand(bot, sync_commands=True)
+    guild_ids = [813577333516402728]
+
+    @slash.slash(
+        name="join",
+        guild_ids = guild_ids
+    )
+    async def _join(ctx: SlashContext):
+        await ctx.respond()
+
+        if ctx.author.voice and ctx.author.voice.channel:
+            await ctx.author.voice.channel.connect()
+        else:
+            await ctx.send(content="このコマンドは、ボイスチャンネルに参加してから実行してください。")
+            return
+        await ctx.send(content=f"チャンネル {ctx.author.voice.channel.name} に参加しました。")
+    
+    @slash.slash(
+        name="leave",
+        guild_ids = guild_ids
+    )
+    async def _leave(ctx: SlashContext):
+        await ctx.respond()
+
+        if ctx.guild.voice_client is not None:
+            await ctx.guild.voice_client.disconnect()
+        
+        await ctx.send(content=f"チャンネル {ctx.guild.name} での読み上げを終了しました。")
+
     bot.add_cog(ReaderCog(bot))
