@@ -17,7 +17,7 @@ class ReaderCog(commands.Cog):
 
         voice_path = f"{message.channel.id}{message.id}.wav"
 
-        content: str = message.content()
+        content: str = message.content
         command = f"open_jtalk -x {self.dic_path} -m {self.model_path} -r 1.0 -ow {voice_path}"
         print(command)
         proc = subprocess.run(
