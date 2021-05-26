@@ -32,7 +32,7 @@ class ReaderCog(commands.Cog):
             voice: discord.VoiceClient = await message.author.voice.channel.connect()
         else:
             voice: discord.VoiceClient = message.guild.voice_client
-        voice.play(source, after=lambda: output.close())
+        voice.play(source, after=lambda e: output.close())
 
 def setup(bot):
     bot.add_cog(ReaderCog(bot))
