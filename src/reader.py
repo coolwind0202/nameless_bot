@@ -12,7 +12,7 @@ class ReaderCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.channel != 813598124387860580:
+        if message.channel.id != 813598124387860580:
             return
 
         voice_path = f"{message.channel.id}{message.id}.wav"
