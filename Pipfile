@@ -9,6 +9,8 @@ discord-py-slash-command = "*"
 emoji = "*"
 tweepy = "*"
 "discord.py" = {extras = ["voice"], version = "*"}
+flask-discord = "*"
+flask-restful = "*"
 
 [dev-packages]
 

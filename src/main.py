@@ -1,16 +1,19 @@
+import os
+import asyncio
+from threading import Thread
+
 import discord
 from discord.ext import commands
 from discord_slash import SlashCommand
 
-import os
+#from web.backend import endpoint
 
 PATHS = (
     "tweet",
     "friend",
     "role",
     "settings",
-    "enter_member",
-    "reader",
+    "reader"
 )
 
 class NameLessBot(commands.Bot):
@@ -24,4 +27,7 @@ class NameLessBot(commands.Bot):
         print("ready...")
 
 bot = NameLessBot(command_prefix="/")
+
+#Thread(target=endpoint.setup, args=(bot,)).start()
+
 bot.run(os.getenv("DISCORD_TOKEN"))
