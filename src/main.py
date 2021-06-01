@@ -6,14 +6,13 @@ import discord
 from discord.ext import commands
 from discord_slash import SlashCommand
 
-#from web.backend import endpoint
-
 PATHS = (
     "tweet",
     "friend",
     "role",
     "settings",
-    "reader"
+    "reader",
+    "web.backend.endpoint",
 )
 
 class NameLessBot(commands.Bot):
@@ -27,7 +26,5 @@ class NameLessBot(commands.Bot):
         print("ready...")
 
 bot = NameLessBot(command_prefix="/")
-
-#Thread(target=endpoint.setup, args=(bot,)).start()
 
 bot.run(os.getenv("DISCORD_TOKEN"))

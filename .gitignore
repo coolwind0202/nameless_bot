@@ -3,4 +3,5 @@ architecture.dio
 .vscode/
 friend
 friend.db
-src/web/
+src/web/frontend/node_modules/
+rolelist.db
