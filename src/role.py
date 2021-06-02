@@ -4,6 +4,7 @@ import os
 
 import discord
 from discord.ext import commands
+import aiohttp
 
 import emoji
 
@@ -15,7 +16,6 @@ class RoleCog(commands.Cog):
     async def set_reaction_channel(self):
         await self.bot.wait_until_ready()
         self.reaction_channel = self.bot.get_channel(int(os.getenv("REACTION_CHANNEL_ID")))
-        print(self.reaction_channel.name)
 
     def find_roles(self, embed: discord.Embed, guild: discord.Guild):
         reaction_to_role = {}
@@ -59,6 +59,28 @@ class RoleCog(commands.Cog):
 
             user_reaction = discord.utils.get(message.reactions, emoji=reaction)
             await user_reaction.remove(payload.member)
+
+    @commands.Cog.listener(name="on_message")
+    async def reaction_message_format(self, message: discord.Message):
+        if not (message.channel == self.reaction_channel and message.author == self.bot.user):
+            return
+        embed: discord.Embed = message.embeds[0]
+        reaction_to_role = self.find_roles(embed, message.guild)
+
+        for reaction in reaction_to_role:
+            await message.add_reaction(reaction)
+
+    @commands.Cog.listener(name="on_raw_message_edit")
+    async def reaction_message_reformat(self, payload: discord.RawMessageUpdateEvent):
+        if payload.channel_id != self.reaction_channel.id:
+            return
+        message: discord.Message = await self.reaction_channel.fetch_message(payload.message_id)
+        embed: discord.Embed = message.embeds[0]
+        reaction_to_role = self.find_roles(embed, message.guild)
+        await message.clear_reactions()
+
+        for reaction in reaction_to_role:
+            await message.add_reaction(reaction)
 
 def setup(bot):
     bot.add_cog(RoleCog(bot))

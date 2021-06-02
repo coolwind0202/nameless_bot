@@ -25,6 +25,6 @@ class NameLessBot(commands.Bot):
     async def on_ready(self):
         print("ready...")
 
-bot = NameLessBot(command_prefix="/")
+bot = NameLessBot(command_prefix="/", intents=discord.Intents.all())
 
 bot.run(os.getenv("DISCORD_TOKEN"))

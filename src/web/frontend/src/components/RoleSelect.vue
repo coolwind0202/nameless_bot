@@ -21,10 +21,6 @@
 export default {
     name: "role-select",
     props: ["roles", "selectedRoleID"],
-    data() {
-        return {
-        }
-    },
     computed: {
         selectedRoleName() {
             return "@" + (this.roles[this.selectedRoleID] || { name: "未選択" }).name;

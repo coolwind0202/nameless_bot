@@ -9,11 +9,22 @@
                 @change="onMessageDataEdit" @post="onSendMessageData" />
         </div>
         <el-button type="primary" icon="el-icon-plus" @click="appendNewEmbed">New</el-button>
+        <el-button type="danger" icon="el-icon-delete" @click="onOpenDeleteDialog">Delete</el-button>
+
+        <el-dialog title="削除するメッセージを選択" :visible.sync="deleteDialogVisible">
+            <delete-table :embedsToDeleteDialog="embedsToDeleteDialog" :multipleSelection="dialogSelection" @change="onChangeDeleteEmbed" />
+            <span slot="footer">
+                <el-button type="danger" @click="onDeleteEmbed" :disabled="isNotAbleToDeleteEmbeds"> 
+                    {{dialogSelection.length}} 件のメッセージを削除 
+                </el-button>
+            </span>
+        </el-dialog>
     </el-main>
 </template>
 
 <script>
 import EmbedForm from './EmbedForm';
+import DeleteTable from './DeleteTable';
 import { MessageBox } from 'element-ui';
 
 import RoleMessageData from '../classes/roleMessageData';
@@ -24,7 +35,8 @@ import axios from 'axios' // eslint-disable-line no-unused-vars
 export default {
     name: "main-vue",
     components: {
-        EmbedForm
+        EmbedForm,
+        DeleteTable
     },
     data() {
         return {
@@ -34,7 +46,22 @@ export default {
                 roles: false,
                 roleMessages: false
             },
-            loading: true
+            loading: true,
+            dialogSelection: [],
+            deleteDialogVisible: false
+        }
+    },
+    computed: {
+        embedsToDeleteDialog() {
+            return this.dataOfEmbeds.map(embed => ({
+                messageId: embed.id.isDiscordID ? embed.id.rawID : "-",
+                summary: embed.summary,
+                description: embed.description,
+                rawID: embed.id.rawID
+            }));
+        },
+        isNotAbleToDeleteEmbeds() {
+            return this.dialogSelection.length == 0;
         }
     },
     methods: {
@@ -93,7 +120,6 @@ export default {
             });
         },
         onSendMessageData({ id }) {
-            // const copy = { ...this.dataOfEmbeds };
             // 送信処理
             console.log(id);
             this.dataOfEmbeds.forEach(embed => {
@@ -113,11 +139,29 @@ export default {
         },
         appendNewEmbed() {
             this.dataOfEmbeds = [ ...this.dataOfEmbeds, this.createNewEmbed() ];
+        },
+        onChangeDeleteEmbed(val) {
+            this.dialogSelection = val;
+        },
+        onOpenDeleteDialog() {
+            this.deleteDialogVisible = true;
+        },
+        onDeleteEmbed() {
+            console.log(this.dialogSelection);
+            this.dialogSelection.forEach(partialEmbed => {
+                if (partialEmbed.messageId != "-") {
+                    axios.delete(`http://localhost:5000/api/messagedata/${partialEmbed.messageId}`).then(() => {
+                        this.dataOfEmbeds = this.dataOfEmbeds.filter(embed => partialEmbed.messageId != embed.id.rawID);
+                    });
+                } else {
+                    this.dataOfEmbeds = this.dataOfEmbeds.filter(embed => partialEmbed.rawID != embed.id.rawID);
+                }
+            });
         }
     },
     created() {
 
-        axios.get("http://localhost:5000/api/roledata").then(resp => {
+        axios.get("https://118.27.109.186/api/roledata").then(resp => {
             console.log(resp.data);
             this.selectableRoles = resp.data;
 
@@ -127,7 +171,7 @@ export default {
             }
         });
 
-        axios.get("http://localhost:5000/api/roles").then(resp => {
+        axios.get("https://118.27.109.186/api/roles").then(resp => {
             console.log(resp.data);
             const embeds = [];
             for (const messageData of resp.data) {

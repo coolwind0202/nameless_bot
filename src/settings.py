@@ -62,7 +62,6 @@ class SettingsCog(commands.Cog):
 
             if data["type"] == "reaction":
                 await self.edit_reaction(send_payload, data, data["messageId"])
-            
 
 def setup(bot):
     bot.add_cog(SettingsCog(bot))

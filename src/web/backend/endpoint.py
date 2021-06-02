@@ -8,6 +8,7 @@ import asyncio
 import secrets
 import ast
 from discord import message
+from waitress import serve
 
 from flask import Flask, redirect, url_for, g
 from flask.templating import render_template
@@ -23,12 +24,12 @@ api = Api(app)
 
 app.config["SECRET_KEY"] = app.secret_key = secrets.token_bytes(32)
 
-os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "true"      # !! Only in development environment.
+# os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "true"      # !! Only in development environment.
 
-app.config["DISCORD_CLIENT_ID"] = 822365434128891924    # Discord client ID.
-app.config["DISCORD_CLIENT_SECRET"] = "jkNFlQmTf9i-ALTX6NzJnUtLwbRAtR3S"                # Discord client secret.
-app.config["DISCORD_REDIRECT_URI"] = "http://localhost:5000/callback"                 # URL to your callback endpoint.
-app.config["DISCORD_BOT_TOKEN"] = "ODIyMzY1NDM0MTI4ODkxOTI0.YFRNfg.hICYm4H9IgSMnnmBoLrqbiEt5Kw"                    # Required to access BOT resources.
+app.config["DISCORD_CLIENT_ID"] = os.getenv("DISCORD_CLIENT_ID")    # Discord client ID.
+app.config["DISCORD_CLIENT_SECRET"] = os.getenv("DISCORD_CLIENT_SECRET")                # Discord client secret.
+app.config["DISCORD_REDIRECT_URI"] = os.getenv("DISCORD_REDIRECT_URI")                 # URL to your callback endpoint.
+app.config["DISCORD_BOT_TOKEN"] = os.getenv("DISCORD_BOT_TOKEN")                    # Required to access BOT resources.
 
 
 discord = DiscordOAuth2Session(app)
@@ -74,15 +75,9 @@ class RoleDB:
     def get_all_message_data(self) -> List[Dict]:
         data_list: List[Dict] = []
 
-        '''
-        for x in self.cur.execute("SELECT * FROM role_message"):
-            print(x)
-        '''
-
         role_messages = self.cur.execute("SELECT * FROM role_message").fetchall()
         
         for (message_id, summary, description, color_value) in role_messages:
-            print(message_id)
             data = {
                 "message_id": message_id,
                 "summary": summary,
@@ -101,6 +96,9 @@ class RoleDB:
             data_list.append(data)
         return data_list
 
+    def delete_role_data_with_message_id(self, message_id: int):
+        self.cur.execute("DELETE FROM role WHERE message_id = ?", (message_id,))
+
     def add_message_data(self, message_id: int, summary: str, description: str, color_value: int, roles: List[RoleData]):
         self.cur.execute("INSERT INTO role_message values(?, ?, ?, ?)", (message_id, summary, description, color_value))
         for role in roles:
@@ -109,8 +107,18 @@ class RoleDB:
 
     def update_message_data(self, message_id: int, summary: str, description: str, color_value:int, roles: List[RoleData]):
         self.cur.execute("UPDATE role_message SET summary = ?, description = ?, color_value = ? WHERE message_id = ?", (summary, description,color_value, message_id))
+        self.delete_role_data_with_message_id(message_id)
         for role in roles:
-            self.cur.execute("UPDATE role SET role_summary = ?, message_id = ?, role_emoji = ? WHERE role_id = ?", (role.role_summary, message_id, role.role_emoji, role.role_id))
+            self.cur.execute("INSERT INTO role values(?, ?, ?, ?)", (role.role_id, message_id, role.role_summary, role.role_emoji))
+        self.conn.commit()
+
+    def delete_message_data(self, message_id: int):
+        self.cur.execute("DELETE FROM role_message WHERE message_id = ?", (message_id,))
+        self.delete_role_data_with_message_id(message_id)
+        self.conn.commit()
+
+    def delete_role(self, role_id: int):
+        self.cur.execute("DELETE FROM role WHERE role_id = ?", (role_id,))
         self.conn.commit()
 
     def exists_message_data(self, message_id: int):
@@ -125,7 +133,6 @@ def get_db():
     return db
 
 def get_guild():
-    # os.getenv("LUCIDA_GUILD_ID")
     guild = discord.bot.get_guild(int(os.getenv("LUCIDA_GUILD_ID")))
     return guild
 
@@ -140,7 +147,6 @@ class Roles(Resource):
 
     def get(self):
         data = get_db().get_all_message_data()
-        print(data)
         for (index, message_data) in enumerate(data):
             data[index]["message_id"] = str(message_data["message_id"])
             data[index]["color_value"] = str(discordpy.Color(message_data["color_value"]))
@@ -182,6 +188,18 @@ class Roles(Resource):
             db.add_message_data(message_id, summary, description, color_value, role_data_list)
             return str(message_id), 201
 
+    def delete(self, role_id):
+        db = get_db()
+        db.delete_role(int(role_id))
+        return '', 204
+
+class RoleMessageData(Resource):
+    def delete(self, message_id):
+        db = get_db()
+        db.delete_message_data(int(message_id))
+        asyncio.run_coroutine_threadsafe(delete_message(int(message_id)), discord.bot.loop)
+        return '', 204
+
 class RoleDiscordData(Resource):
     def get(self):
         guild = get_guild()
@@ -199,8 +217,8 @@ class UserData(Resource):
 
 api.add_resource(Roles, "/api/roles")
 api.add_resource(RoleDiscordData, "/api/roledata")
+api.add_resource(RoleMessageData, "/api/messagedata/<message_id>")
 api.add_resource(UserData, "/api/user")
-
 
 @app.route("/logout/")
 def logout():
@@ -237,21 +255,28 @@ def top_page():
 def settings():
     return render_template('index.html')
 
-async def send_message(embed: discordpy.Embed) -> int:
+async def get_channel() -> discordpy.TextChannel:
     channel_id = int(os.getenv("REACTION_CHANNEL_ID"))
     if (channel := discord.bot.get_channel(channel_id)) is None:
-        channel = await discord.bot.fetch_channel(channel_id)
+        channel: discordpy.TextChannel = await discord.bot.fetch_channel(channel_id)
+    return channel
 
+async def get_message(message_id: int) -> discordpy.Message:
+    channel: discordpy.TextChannel = await get_channel()
+    return await channel.fetch_message(message_id)
+
+async def send_message(embed: discordpy.Embed) -> int:
+    channel: discordpy.TextChannel = await get_channel()
     message = await channel.send(embed=embed)
     return message.id
 
 async def edit_message(message_id, embed: discordpy.Embed):
-    channel_id = int(os.getenv("REACTION_CHANNEL_ID"))
-    if (channel := discord.bot.get_channel(channel_id)) is None:
-        channel = await discord.bot.fetch_channel(channel_id)
-
-    message = await channel.fetch_message(message_id)
+    message = await get_message(message_id)
     await message.edit(embed=embed)
+
+async def delete_message(message_id):
+    message = await get_message(message_id)
+    await message.delete()
 
 def create_embed(summary, description, color_value, roles: List[RoleData]) -> discordpy.Embed:
     embed = discordpy.Embed(title=summary, description=description, color=discordpy.Color(color_value))
@@ -259,7 +284,9 @@ def create_embed(summary, description, color_value, roles: List[RoleData]) -> di
         embed.add_field(name=role.role_summary, value=f"<@&{role.role_id}>\n{role.role_emoji}　絵文字を押してください。", inline=False)
     return embed
 
+def run():
+    serve(app, host="0.0.0.0", port=5000, url_scheme="https")
 
 def setup(bot: commands.Bot):
     discord.bot = bot
-    Thread(target=app.run).start()
+    Thread(target=run).start()
