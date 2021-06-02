@@ -100,7 +100,7 @@ export default {
                     return;
                 }
             }
-            axios.post("http://localhost:5000/api/roles", embed).then(resp => {
+            axios.post("https://118.27.109.186/api/roles", embed).then(resp => {
                 console.log(resp);
                 if (!embed.id.isDiscordID) {
                     const newEmbedData = this.dataOfEmbeds.map(target => {
@@ -150,7 +150,7 @@ export default {
             console.log(this.dialogSelection);
             this.dialogSelection.forEach(partialEmbed => {
                 if (partialEmbed.messageId != "-") {
-                    axios.delete(`http://localhost:5000/api/messagedata/${partialEmbed.messageId}`).then(() => {
+                    axios.delete(`https://118.27.109.186/api/messagedata/${partialEmbed.messageId}`).then(() => {
                         this.dataOfEmbeds = this.dataOfEmbeds.filter(embed => partialEmbed.messageId != embed.id.rawID);
                     });
                 } else {
