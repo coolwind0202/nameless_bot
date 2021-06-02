@@ -29,7 +29,7 @@ app.config["SECRET_KEY"] = app.secret_key = secrets.token_bytes(32)
 app.config["DISCORD_CLIENT_ID"] = os.getenv("DISCORD_CLIENT_ID")    # Discord client ID.
 app.config["DISCORD_CLIENT_SECRET"] = os.getenv("DISCORD_CLIENT_SECRET")                # Discord client secret.
 app.config["DISCORD_REDIRECT_URI"] = os.getenv("DISCORD_REDIRECT_URI")                 # URL to your callback endpoint.
-app.config["DISCORD_BOT_TOKEN"] = os.getenv("DISCORD_BOT_TOKEN")                    # Required to access BOT resources.
+app.config["DISCORD_TOKEN"] = os.getenv("DISCORD_TOKEN")                    # Required to access BOT resources.
 
 
 discord = DiscordOAuth2Session(app)
