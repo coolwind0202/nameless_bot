@@ -285,7 +285,7 @@ def create_embed(summary, description, color_value, roles: List[RoleData]) -> di
     return embed
 
 def run():
-    serve(app, host="0.0.0.0", port=5000)
+    serve(app, host="0.0.0.0", port=80)
 
 def setup(bot: commands.Bot):
     discord.bot = bot
