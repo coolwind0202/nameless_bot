@@ -100,7 +100,7 @@ export default {
                     return;
                 }
             }
-            axios.post("https://118.27.109.186/api/roles", embed).then(resp => {
+            axios.post("https://settings.wh-lucida.net/api/roles", embed).then(resp => {
                 console.log(resp);
                 if (!embed.id.isDiscordID) {
                     const newEmbedData = this.dataOfEmbeds.map(target => {
@@ -150,7 +150,7 @@ export default {
             console.log(this.dialogSelection);
             this.dialogSelection.forEach(partialEmbed => {
                 if (partialEmbed.messageId != "-") {
-                    axios.delete(`https://118.27.109.186/api/messagedata/${partialEmbed.messageId}`).then(() => {
+                    axios.delete(`https://settings.wh-lucida.net/api/messagedata/${partialEmbed.messageId}`).then(() => {
                         this.dataOfEmbeds = this.dataOfEmbeds.filter(embed => partialEmbed.messageId != embed.id.rawID);
                     });
                 } else {
@@ -161,7 +161,7 @@ export default {
     },
     created() {
 
-        axios.get("https://118.27.109.186/api/roledata").then(resp => {
+        axios.get("https://settings.wh-lucida.net/api/roledata").then(resp => {
             console.log(resp.data);
             this.selectableRoles = resp.data;
 
@@ -171,7 +171,7 @@ export default {
             }
         });
 
-        axios.get("https://118.27.109.186/api/roles").then(resp => {
+        axios.get("https://settings.wh-lucida.net/api/roles").then(resp => {
             console.log(resp.data);
             const embeds = [];
             for (const messageData of resp.data) {

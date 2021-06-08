@@ -16,7 +16,7 @@ export default {
         }
     },
     created() {
-        axios.get("https://118.27.109.186/api/user").then(resp => {
+        axios.get("https://settings.wh-lucida.net/api/user").then(resp => {
             this.avatar_url = resp.data["avatar_url"];
             this.username = resp.data["username"];
         })
